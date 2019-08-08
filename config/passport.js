@@ -1,5 +1,4 @@
 var GoogleStrategy = require('passport-google-oauth20').Strategy;
-
 var mongoose =require('mongoose');
 var keys = require('./keys');
 
@@ -18,7 +17,6 @@ passport.use(
         // console.log(accessToken);
          //console.log(profile);
         var image = profile.photos[0].value;
-        console.log(image);
         var newUser={
           googleID: profile.id,
           firstName:profile.name.givenName,
@@ -44,14 +42,12 @@ passport.use(
         }
       })
     })
- )
+ );
  passport.serializeUser(function(user, done) {
   done(null, user.id);
 });
 
-passport.deserializeUser(function(id, done) {
-  User.findById(id, function(err, user) {
-    done(err, user);
-  });
+passport.deserializeUser((id, done) => {
+  User.findById(id).then(user => done(null, user));
 });
 }

@@ -1,68 +1,95 @@
-var express = require('express');
-var mongoose = require('mongoose');
-var exphbs = require('express-handlebars');
-var passport = require('passport');
-var cookieParser = require('cookie-parser');
-var session = require('express-session');
+const express = require('express');
+const exphbs = require('express-handlebars');
+var path = require('path');
+var bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+var methodOverride = require('method-override');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const passport = require('passport');
 
-
-//load user model
+// Load User Model
 require('./models/User');
-var User = mongoose.model('users');
 
+//load story
+require('./models/Story');
+
+// Passport Config
 require('./config/passport')(passport);
 
-//load routes
-var index = require('./routes/index');
-var auth = require('./routes/auth');
+// Load Routes
+const index = require('./routes/index');
+const auth = require('./routes/auth');
+const stories = require('./routes/stories');
 
+// Load Keys
+const keys = require('./config/keys');
 
-var app= express();
-//
-app.engine('handlebars', exphbs({
-    defaultLayout:'main'
-}));
-app.set('view engine','handlebars');
+//handlebars helpers
+const{
+    truncate,
+    stripTags,
+    formatDate,
+    select
+} = require('./helpers/hbs');
 
-//map global promise
-mongoose.Promise=global.Promise;
-
-//connect to mongoose
+// Map global promises
+mongoose.Promise = global.Promise;
+// Mongoose Connect
 mongoose.connect('mongodb://localhost/sb-dev',{
     useNewUrlParser: true
 })
-.then(function(){
-    console.log('MongoDB Connected...');
-})
-.catch(err=>console.log(err));
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.log(err));
 
-//pasport middleware
-  app.use(passport.initialize());
-  app.use(passport.session());
+const app = express();
 
-  app.use(cookieParser());
-  app.use(session({
-      secret: 'secret',
-      resave: false,
-      saveUninitialized: true,
-    }));
+//body-parser middleware
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.json());
 
- //set global vars
-app.use((req,res,next)=>{
-    res.locals.user = req.user || null;
-    next();
+//method override middleware
+app.use(methodOverride('_method'));
+
+// Handlebars Middleware
+app.engine('handlebars', exphbs({
+    helpers:{
+        truncate:truncate,
+        stripTags: stripTags,
+        formatDate: formatDate,
+        select:select
+    },
+  defaultLayout:'main'
+}));
+app.set('view engine', 'handlebars');
+
+app.use(cookieParser());
+app.use(session({
+  secret: 'secret',
+  resave: false,
+  saveUninitialized: false
+}));
+
+// Passport Middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Set global vars
+app.use((req, res, next) => {
+  res.locals.user = req.user || null;
+  next();
 });
 
+//set static folder
+app.use(express.static(path.join(__dirname,'public')));
 
+// Use Routes
+app.use('/', index);
+app.use('/auth', auth);
+app.use('/stories', stories);
 
-//use routes
-app.use('/',index);
-app.use('/auth',auth);
+const port = process.env.PORT || 3000;
 
-
-var port = process.env.PORT || 3000;
-
-app.listen(port , ()=>{
-    console.log(`Server started on ${port}`);
-
+app.listen(port, () => {
+  console.log(`Server started on port ${port}`)
 });
