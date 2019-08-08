@@ -9,6 +9,7 @@ const {ensureAuthenticated, ensureGuest} = require('../helpers/auth');
 router.get('/',(req,res)=>{
     Story.find({status:'Public'})
     .populate('user')
+    .sort({date:'desc'})
     .then(stories=>{
     res.render('stories/index',{
           stories:stories
@@ -25,13 +26,43 @@ router.get('/show/:id',ensureAuthenticated,(req,res)=>{
     .populate('user')
     .populate('comments.commentUser')
     .then(story=>{
-        res.render('stories/show',{
-            story:story
+        if(story.status == 'Public'){
+            res.render('stories/show',{
+                story:story
+            });
+        }else{
+            
+            if(req.user){
+                    if(req.user.id == story.user._id){
+                        res.render('stories/show',{
+                            story:story
+                        });
+                    }else{
+                        res.redirect('/stories');
+                    }
+            }else{
+                res.redirect('/stories');
+            }
+
+           
+        }
+    });
+});
+
+//List stories from a user
+router.get('/user/:userId',(req,res)=>{
+    Story.find({user:req.params.userId,status:'Public'})
+    .populate('user')
+    .then(stories=>{
+        res.render('stories/index',{
+            stories:stories
         });
+
     });
 });
 
 
+//add story form
 router.get('/add',ensureAuthenticated, (req,res)=>{
     res.render('stories/add');
 });
@@ -43,9 +74,15 @@ router.get('/edit/:id',ensureAuthenticated, (req,res)=>{
     })
    
     .then(story=>{
-        res.render('stories/edit',{
-            story:story
+        if(story.user != req.user.id){
+            res.redirect('/stories');
+        }
+        else{
+            res.render('stories/edit',{
+                story:story
         });
+        
+    }
     });
     
     

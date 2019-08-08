@@ -2,6 +2,7 @@
     <div class="col s12 m8">
         <h3>
             {{story.title}}
+            <small>{{{editIcon story.user.id user.id story.id false}}}</small>
         </h3>
         <div class="card story">
         <div class="card-content">
@@ -37,7 +38,10 @@
         <h5>{{commentBody}}</h5>
           <div class="chip">
             <img src="{{commentUser.image}}" >
+            <a href="/stories/user/{{commentUser.id}}">{{user.firstName}} {{user.lastName}}
+ 
             {{commentUser.firstName}} {{commentUser.lastName}}
+         </a>
         </div>
         <br>
         <small>Posted {{formatDate commentDate 'MMMM Do YYYY'}}</small>
