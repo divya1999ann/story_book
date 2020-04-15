@@ -27,7 +27,7 @@ Stories(id,status,title,body,user,comment['comment-date','commentbody'],date)
 
 
 
-Screenshot:
+**Screenshot:**
 ![Home page](https://user-images.githubusercontent.com/35146742/79359194-e80ce000-7f5f-11ea-829d-f41cac3c8d40.png)
 
 ![Screenshot from 2020-04-15 21-10-52](https://user-images.githubusercontent.com/35146742/79359321-15f22480-7f60-11ea-8791-1dd0fa03ef69.png)
